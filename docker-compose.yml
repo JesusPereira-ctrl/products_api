@@ -1,0 +1,29 @@
+services:
+  postgresql_db:
+    image: postgres:17-alpine
+    container_name: pg_database
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: product_db
+      POSTGRES_PASSWORD: 5696
+      POSTGRES_USER: postgres
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./postgresql_data:/var/lib/postgresql/data
+
+  sb_app:
+    build: .
+    ports:
+      - 8080:8080
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql_db:5432/product_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 5696
+    depends_on:
+      postgresql_db:
+        condition: service_healthy
